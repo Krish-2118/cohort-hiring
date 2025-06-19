@@ -181,7 +181,7 @@ const MedicalInterface = () => {
       };
 
       // Call the Flask API to generate prescription
-      const response = await fetch('http://localhost:5000/generate_prescription', {
+      const response = await fetch('https://cohort-hiring-3.onrender.com/generate_prescription', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +222,7 @@ const MedicalInterface = () => {
     
     // Check interactions
     try {
-      const interactionsResponse = await fetch('http://localhost:5000/check_interactions', {
+      const interactionsResponse = await fetch('https://cohort-hiring-3.onrender.com/check_interactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,7 +258,7 @@ const MedicalInterface = () => {
 
   const calculateDosage = async (medicine, age, weight, kidneyFunction) => {
     try {
-      const response = await fetch('http://localhost:5000/calculate_dosage', {
+      const response = await fetch('https://cohort-hiring-3.onrender.com/calculate_dosage', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
