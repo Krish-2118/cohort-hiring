@@ -989,7 +989,7 @@ if __name__ == '__main__':
 
     # Train the enhanced model on startup
     print("Starting Enhanced Prescription Generator...")
-    print("Training enhanced model (this may take a few minutes)...")
+    
     
     try:
         
@@ -1001,6 +1001,9 @@ if __name__ == '__main__':
     # Start the Flask server
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
+    return jsonify({'message': 'ML backend is running'})
+
+
 @app.route('/')
 def root():
     return jsonify({'message': 'ML backend is running'})
@@ -1012,5 +1015,4 @@ def train_model():
         return jsonify({'message': 'Model trained successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
