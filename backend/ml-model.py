@@ -2,9 +2,12 @@
 from flask import Flask, jsonify, request
 
 # Global model instance
+prescription_generator = None
 
 # Global model instance
+prescription_generator = None
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 from flask_cors import CORS
 CORS(app)
 
@@ -370,6 +373,7 @@ class EnhancedPrescriptionGenerator:
         
         return combined_features
     
+    def train_enhanced_model(self, use_ensemble: bool = True):
         """Train enhanced model with better algorithms"""
         logger.info("Generating enhanced training data...")
         features_df, targets_df = self.create_enhanced_training_data(n_samples=5000)
@@ -503,6 +507,7 @@ class EnhancedPrescriptionGenerator:
         if consider_cost:
             safe_prescriptions = self._optimize_for_cost(safe_prescriptions)
         
+        self.is_trained = True
         return safe_prescriptions[:5]
     
     def _enhance_patient_data(self, patient_data: Dict) -> Dict:
@@ -719,6 +724,7 @@ import traceback
 
 
 # Initialize the enhanced prescription generator
+prescription_generator = EnhancedPrescriptionGenerator()
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -738,6 +744,7 @@ def train_model():
             original_method = prescription_generator.create_enhanced_training_data
             prescription_generator.create_enhanced_training_data = lambda: original_method(n_samples)
         
+        prescription_generator.train_enhanced_model(use_ensemble=use_ensemble)
         
         return jsonify({
             'status': 'success', 
@@ -748,10 +755,11 @@ def train_model():
         logger.error(f"Training error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e), 'traceback': traceback.format_exc()}), 500
 
-@app.route('/generate_prescription', methods=['POST'])
+@app.route('/generate_prescription', methods=['POST', 'OPTIONS'])
 def generate_prescription():
+    global prescription_generator
+    global prescription_generator
     """Generate enhanced prescription for a patient"""
-    print(f"Model trained: {prescription_generator.is_trained}")
     try:
         data = request.json
         patient_data = data.get('patient_data', {})
@@ -992,12 +1000,6 @@ def internal_error(error):
 def root():
     return jsonify({'message': 'ML backend is running'})
 
-
-
-    return jsonify({
-        'status': 'ok',
-        'trained': prescription_generator.is_trained
-    })
 if __name__ == '__main__':
     global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
@@ -1007,18 +1009,16 @@ if __name__ == '__main__':
         print("Model training complete.")
     except Exception as e:
         print(f"Startup training failed: {e}")
-    print("Starting Flask server on port 5000...")
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    global prescription_generator
+    prescription_generator = EnhancedPrescriptionGenerator()
     print("Training model on startup...")
     try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
         print("Model training complete.")
     except Exception as e:
         print(f"Startup training failed: {e}")
-    print("Training model on startup...")
-    try:
-        print("Model training complete.")
-    except Exception as e:
-        print(f"Startup training failed: {e}")
+    global prescription_generator
+    prescription_generator = EnhancedPrescriptionGenerator()
 
     # Train the enhanced model on startup
     print("Starting Enhanced Prescription Generator...")
@@ -1033,12 +1033,16 @@ if __name__ == '__main__':
     
     # Start the Flask server
     print("Starting Flask server on port 5000...")
+    app.run(debug=True, port=5000, host='0.0.0.0')
 
 @app.route('/train', methods=['POST'])
 def train_model():
     try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
         return jsonify({'message': 'Model trained successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+if __name__ == '__main__':
     print("Starting Flask server on port 5000...")
+    app.run(debug=True, port=5000, host='0.0.0.0')
