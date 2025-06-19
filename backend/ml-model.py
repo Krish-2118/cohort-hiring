@@ -512,6 +512,7 @@ class EnhancedPrescriptionGenerator:
             safe_prescriptions = self._optimize_for_cost(safe_prescriptions)
         
         return safe_prescriptions[:5]
+                                         
     def _get_medicine_details(self, medicine_name: str) -> Dict:
     """
     Dummy medicine detail lookup.
