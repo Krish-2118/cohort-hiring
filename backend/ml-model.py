@@ -483,7 +483,7 @@ class EnhancedPrescriptionGenerator:
                 probability *= doctor_pref
             
             if probability > 0.2:  # Lower threshold for better recall
-                medicine_details = self._get_medicine_details(medicine)
+                medicine_details = self.get_medicine_details(medicine)
                 
                 # Calculate appropriate dosage
                 adjusted_dosage = self.dosage_calculator.calculate_dose(
