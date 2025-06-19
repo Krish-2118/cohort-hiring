@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class EnhancedPrescriptionGenerator:
     def __init__(self):
+        self.is_trained = False
         self.models = {}
         self.vectorizers = {}
         self.encoders = {}
