@@ -711,6 +711,10 @@ CORS(app)
 
 # Initialize the enhanced prescription generator
 prescription_generator = EnhancedPrescriptionGenerator()
+@app.route('/', methods=['GET'])
+def root():
+    return jsonify({'message': 'ML backend is running'})
+
 
 @app.route('/health', methods=['GET'])
 def health_check():
