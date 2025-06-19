@@ -750,6 +750,7 @@ def train_model():
 @app.route('/generate_prescription', methods=['POST'])
 def generate_prescription():
     """Generate enhanced prescription for a patient"""
+    print(f"Model trained: {prescription_generator.is_trained}")
     try:
         data = request.json
         patient_data = data.get('patient_data', {})
@@ -991,6 +992,13 @@ def root():
     return jsonify({'message': 'ML backend is running'})
 
 
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'trained': prescription_generator.is_trained
+    })
 if __name__ == '__main__':
     global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
