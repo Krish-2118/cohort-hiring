@@ -1014,6 +1014,7 @@ if __name__ == '__main__':
         print("Model training complete.")
     except Exception as e:
         print(f"Startup training failed: {e}")
+    global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
 
     # Train the enhanced model on startup
