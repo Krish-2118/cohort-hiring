@@ -333,7 +333,10 @@ class EnhancedPrescriptionGenerator:
         else:
             conditions_features = self.vectorizers['conditions'].transform(conditions_text)
             symptoms_features = self.vectorizers['symptoms'].transform(symptoms_text)
-            gender_encoded = self.encoders['gender'].transform(features_df['gender'])
+            gender_encoded = features_df['gender'].apply(
+    lambda g: self.encoders['gender'].transform([g])[0] if g in self.encoders['gender'].classes_ else -1
+)
+
         
         # Process lab values
         lab_features = []
