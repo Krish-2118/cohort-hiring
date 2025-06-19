@@ -1,3 +1,10 @@
+
+from flask import Flask, jsonify, request
+app = Flask(__name__)
+from flask_cors import CORS
+CORS(app)
+
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -13,7 +20,7 @@ import warnings
 import logging
 from datetime import datetime
 warnings.filterwarnings('ignore')
-
+from flask_cors import CORS
 
 
 # Configure logging
@@ -706,15 +713,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import traceback
 
-app = Flask(__name__)
-CORS(app)
 
 # Initialize the enhanced prescription generator
 prescription_generator = EnhancedPrescriptionGenerator()
-@app.route('/', methods=['GET'])
-def root():
-    return jsonify({'message': 'ML backend is running'})
-
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -991,12 +992,27 @@ if __name__ == '__main__':
     print("Training enhanced model (this may take a few minutes)...")
     
     try:
-        prescription_generator.train_enhanced_model(use_ensemble=True)
+        
         print("Model training completed successfully!")
     except Exception as e:
         print(f"Warning: Model training failed: {e}")
         print("Server will start without pre-trained model.")
     
     # Start the Flask server
+    print("Starting Flask server on port 5000...")
+    app.run(debug=True, port=5000, host='0.0.0.0')
+@app.route('/')
+def root():
+    return jsonify({'message': 'ML backend is running'})
+
+@app.route('/train', methods=['POST'])
+def train_model():
+    try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
+        return jsonify({'message': 'Model trained successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
