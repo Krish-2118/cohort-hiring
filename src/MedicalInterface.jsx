@@ -152,70 +152,103 @@ const MedicalInterface = () => {
     };
   }
 
-  const generatePrescription = async () => {
-    if (!selectedPatient) return;
-    
-    setIsGeneratingPrescription(true);
-    setPrescriptionError(null);
-    setGeneratedPrescription([]);
-    setInteractionWarnings([]);
-    setContraindicationWarnings([]);
-    
+  useEffect(() => {
+  const checkBackendHealth = async () => {
     try {
-      // Prepare patient data for the ML model
-      const patientData = {
-        patient_id: selectedPatient.id,
-        age: selectedPatient.age,
-        weight: parseFloat(selectedPatient.vitals.weight),
-        height: parseFloat(selectedPatient.vitals.height),
-        gender: selectedPatient.gender.toLowerCase(),
-        conditions: selectedPatient.diagnosis.split(',').map(d => d.trim()),
-        contraindications: selectedPatient.contraindications || [],
-        lab_values: {
-          glucose: selectedPatient.labResults.hba1c ? parseFloat(selectedPatient.labResults.hba1c) * 10 : 90,
-          hba1c: selectedPatient.labResults.hba1c ? parseFloat(selectedPatient.labResults.hba1c) : 5.2,
-          cholesterol: selectedPatient.labResults.cholesterol ? parseFloat(selectedPatient.labResults.cholesterol) : 180,
-          creatinine: selectedPatient.labResults.creatinine ? parseFloat(selectedPatient.labResults.creatinine) : 1.0
-        },
-        kidney_function: selectedPatient.labResults.creatinine > 1.5 ? "impaired" : "normal"
-      };
-
-      // Call the Flask API to generate prescription
-      const response = await fetch('https://cohort-hiring-3.onrender.com/generate_prescription', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          patient_data: patientData,
-          doctor_id: "default",
-          consider_cost: true
-        })
-      });
-
+      const response = await fetch('https://cohort-hiring-3.onrender.com/health');
       if (!response.ok) {
-        throw new Error('Failed to generate prescription');
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 'success') {
-        setGeneratedPrescription(data.prescription);
-        
-        // Check for interactions and contraindications
-        checkPrescriptionSafety(data.prescription, patientData);
-        
-        setShowPrescription(true);
-      } else {
-        throw new Error(data.message || 'Failed to generate prescription');
+        console.error('Backend health check failed');
       }
     } catch (error) {
-      console.error('Error generating prescription:', error);
-      setPrescriptionError(error.message);
-    } finally {
-      setIsGeneratingPrescription(false);
+      console.error('Error checking backend health:', error);
     }
   };
+  
+  checkBackendHealth();
+}, []);
+
+  const generatePrescription = async () => {
+  if (!selectedPatient) return;
+  
+  setIsGeneratingPrescription(true);
+  setPrescriptionError(null);
+  setGeneratedPrescription([]);
+  setInteractionWarnings([]);
+  setContraindicationWarnings([]);
+  
+  try {
+    // Prepare patient data for the ML model
+    const patientData = {
+      patient_id: selectedPatient.id,
+      age: selectedPatient.age,
+      weight: parseFloat(selectedPatient.vitals.weight),
+      height: parseFloat(selectedPatient.vitals.height.replace(/[^\d.]/g, '')), // Ensure height is parsed correctly
+      gender: selectedPatient.gender.toLowerCase(),
+      conditions: selectedPatient.diagnosis.split(',').map(d => d.trim()),
+      contraindications: selectedPatient.contraindications || [],
+      lab_values: {
+        glucose: selectedPatient.labResults.hba1c ? parseFloat(selectedPatient.labResults.hba1c) * 10 : 90,
+        hba1c: selectedPatient.labResults.hba1c ? parseFloat(selectedPatient.labResults.hba1c) : 5.2,
+        cholesterol: selectedPatient.labResults.cholesterol ? parseFloat(selectedPatient.labResults.cholesterol) : 180,
+        creatinine: selectedPatient.labResults.creatinine ? parseFloat(selectedPatient.labResults.creatinine) : 1.0
+      },
+      kidney_function: selectedPatient.labResults.creatinine > 1.5 ? "impaired" : "normal",
+      symptoms: [] // Add empty symptoms array if not provided
+    };
+
+    // Add debug logging
+    console.log("Sending patient data:", patientData);
+    // In your generatePrescription function, before the fetch call:
+if (!patientData.conditions || patientData.conditions.length === 0) {
+  setPrescriptionError('Patient must have at least one condition');
+  setIsGeneratingPrescription(false);
+  return;
+}
+
+if (isNaN(patientData.weight)) {
+  setPrescriptionError('Invalid weight value');
+  setIsGeneratingPrescription(false);
+  return;
+}
+
+    // Call the Flask API to generate prescription
+    const response = await fetch('https://cohort-hiring-3.onrender.com/generate_prescription', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        patient_data: patientData,
+        doctor_id: "default",
+        consider_cost: true
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Received response:", data);
+    
+    if (data.status === 'success') {
+      setGeneratedPrescription(data.prescription);
+      
+      // Check for interactions and contraindications
+      checkPrescriptionSafety(data.prescription, patientData);
+      
+      setShowPrescription(true);
+    } else {
+      throw new Error(data.message || 'Failed to generate prescription');
+    }
+  } catch (error) {
+    console.error('Error generating prescription:', error);
+    setPrescriptionError(error.message);
+  } finally {
+    setIsGeneratingPrescription(false);
+  }
+};
 
   const checkPrescriptionSafety = async (prescription, patientData) => {
     const medicineNames = prescription.map(med => med.medicine);
