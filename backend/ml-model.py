@@ -513,17 +513,17 @@ class EnhancedPrescriptionGenerator:
         
         return safe_prescriptions[:5]
                                          
-    def _get_medicine_details(self, medicine_name: str) -> Dict:
-    """
-    Dummy medicine detail lookup.
-    Replace this logic with a real database/API if needed.
-    """
-    return {
-        "dosage": "500mg",
-        "frequency": "Twice a day",
-        "category": "General",
-        "cost_tier": 2,
-        "monitoring": ["blood pressure", "liver function"]
+    def get_medicine_details(self, medicine_name: str) -> Dict:
+        """
+        Dummy medicine detail lookup.
+        
+        """
+        return {
+            "dosage": "500mg",
+            "frequency": "Twice a day",
+            "category": "General",
+            "cost_tier": 2,
+            "monitoring": ["blood pressure", "liver function"]
     }
 
     def _enhance_patient_data(self, patient_data: Dict) -> Dict:
