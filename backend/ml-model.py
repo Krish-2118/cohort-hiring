@@ -723,6 +723,15 @@ import traceback
 # Initialize the enhanced prescription generator
 prescription_generator = EnhancedPrescriptionGenerator()
 
+
+@app.route('/model_status', methods=['GET'])
+def model_status():
+    return jsonify({
+        'is_trained': bool(prescription_generator.models),
+        'model_count': len(prescription_generator.models),
+        'ready': len(prescription_generator.models) > 0
+    })
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -752,34 +761,75 @@ def train_model():
         logger.error(f"Training error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e), 'traceback': traceback.format_exc()}), 500
 
-@app.route('/generate_prescription', methods=['POST'])
+@app.route('/generate_prescription', methods=['POST','OPTIONS'])
 def generate_prescription():
-    global prescription_generator
-    global prescription_generator
-    """Generate enhanced prescription for a patient"""
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response, 200
+        
     try:
-        data = request.json
+        data = request.get_json()
+        if not data:
+            return jsonify({'status': 'error', 'message': 'No data provided'}), 400
+            
         patient_data = data.get('patient_data', {})
+        if not patient_data:
+            return jsonify({'status': 'error', 'message': 'No patient_data provided'}), 400
+            
+        # Validate required fields
+        required_fields = ['age', 'weight', 'conditions']
+        missing = [field for field in required_fields if field not in patient_data]
+        if missing:
+            return jsonify({
+                'status': 'error',
+                'message': f'Missing required fields: {", ".join(missing)}'
+            }), 400
+            
+        # Ensure conditions is a list
+        if isinstance(patient_data.get('conditions'), str):
+            patient_data['conditions'] = [patient_data['conditions']]
+            
+        # Add default values for optional fields
+        patient_data.setdefault('symptoms', [])
+        patient_data.setdefault('lab_values', {})
+        patient_data.setdefault('contraindications', [])
+            
         doctor_id = data.get('doctor_id', 'default')
         consider_cost = data.get('consider_cost', True)
         
+        if not prescription_generator.models:
+            return jsonify({
+                'status': 'error',
+                'message': 'Model not trained. Please train the model first.'
+            }), 503
+            
         prescription = prescription_generator.generate_enhanced_prescription(
             patient_data, doctor_id, consider_cost
         )
         
-        # Log the prescription
         patient_id = patient_data.get('patient_id', 'unknown')
         prescription_generator.log_prescription(patient_id, doctor_id, prescription)
         
-        return jsonify({
+        response = jsonify({
             'status': 'success',
             'prescription': prescription,
             'patient_id': patient_id,
             'generated_at': datetime.now().isoformat()
         })
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     except Exception as e:
-        logger.error(f"Prescription generation error: {str(e)}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        logger.error(f"Prescription generation error: {str(e)}\n{traceback.format_exc()}")
+        response = jsonify({
+            'status': 'error',
+            'message': str(e),
+            'traceback': traceback.format_exc()
+        })
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 500
 
 @app.route('/check_interactions', methods=['POST'])
 def check_interactions():
