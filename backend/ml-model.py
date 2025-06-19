@@ -314,8 +314,10 @@ class EnhancedPrescriptionGenerator:
     def preprocess_enhanced_features(self, features_df: pd.DataFrame, fit: bool = True) -> np.ndarray:
         """Enhanced feature preprocessing"""
         # Text features
-        conditions_text = features_df['conditions'].fillna('')
-        symptoms_text = features_df['symptoms'].fillna('')
+        conditions_text = features_df['conditions'].apply(lambda x: ' '.join(x) if isinstance(x, list) else str(x)).fillna('')
+
+        symptoms_text = features_df['symptoms'].apply(lambda x: ' '.join(x) if isinstance(x, list) else str(x)).fillna('')
+
         
         if fit:
             self.vectorizers['conditions'] = TfidfVectorizer(max_features=50, ngram_range=(1, 2))
