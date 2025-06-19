@@ -7,7 +7,6 @@ prescription_generator = None
 # Global model instance
 prescription_generator = None
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 from flask_cors import CORS
 CORS(app)
 
@@ -36,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 class EnhancedPrescriptionGenerator:
     def __init__(self):
-        self.is_trained = False
         self.models = {}
         self.vectorizers = {}
         self.encoders = {}
@@ -507,7 +505,6 @@ class EnhancedPrescriptionGenerator:
         if consider_cost:
             safe_prescriptions = self._optimize_for_cost(safe_prescriptions)
         
-        self.is_trained = True
         return safe_prescriptions[:5]
     
     def _enhance_patient_data(self, patient_data: Dict) -> Dict:
@@ -755,7 +752,7 @@ def train_model():
         logger.error(f"Training error: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e), 'traceback': traceback.format_exc()}), 500
 
-@app.route('/generate_prescription', methods=['POST', 'OPTIONS'])
+@app.route('/generate_prescription', methods=['POST'])
 def generate_prescription():
     global prescription_generator
     global prescription_generator
@@ -1001,48 +998,48 @@ def root():
     return jsonify({'message': 'ML backend is running'})
 
 if __name__ == '__main__':
-
-@app.route('/train', methods=['POST'])
-def train_model():
-    try:
-        prescription_generator.train_enhanced_model(use_ensemble=True)
-        return jsonify({'message': 'Model trained successfully'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 if __name__ == '__main__':
     global prescription_generator
-    global prescription_generator
+    prescription_generator = EnhancedPrescriptionGenerator()
+    print("Training model on startup...")
+    try:
+    prescription_generator.train_enhanced_model(use_ensemble=True)
+    print("Model training complete.")
+    except Exception as e:
+    print(f"Startup training failed: {e}")
     global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
     print("Training model on startup...")
     try:
-        prescription_generator.train_enhanced_model(use_ensemble=True)
-        print("Model training complete.")
+    prescription_generator.train_enhanced_model(use_ensemble=True)
+    print("Model training complete.")
     except Exception as e:
-        print(f"Startup training failed: {e}")
-    prescription_generator = EnhancedPrescriptionGenerator()
-    print("Training model on startup...")
-    try:
-        prescription_generator.train_enhanced_model(use_ensemble=True)
-        print("Model training complete.")
-    except Exception as e:
-        print(f"Startup training failed: {e}")
+    print(f"Startup training failed: {e}")
+    global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
 
     # Train the enhanced model on startup
     print("Starting Enhanced Prescription Generator...")
     print("Training enhanced model (this may take a few minutes)...")
-    
+
     try:
-        
-        print("Model training completed successfully!")
+
+    print("Model training completed successfully!")
     except Exception as e:
-        print(f"Warning: Model training failed: {e}")
-        print("Server will start without pre-trained model.")
-    
+    print(f"Warning: Model training failed: {e}")
+    print("Server will start without pre-trained model.")
+
     # Start the Flask server
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
+
+    @app.route('/train', methods=['POST'])
+    def train_model():
+    try:
+    prescription_generator.train_enhanced_model(use_ensemble=True)
+    return jsonify({'message': 'Model trained successfully'})
+    except Exception as e:
+    return jsonify({'error': str(e)}), 500
+
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
