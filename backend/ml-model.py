@@ -830,25 +830,6 @@ def calculate_dosage():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/get_medicine_info', methods=['GET'])
-def get_medicine_info():
-    """Get detailed information about a medicine"""
-    try:
-        medicine = request.args.get('medicine')
-        if not medicine:
-            return jsonify({'status': 'error', 'message': 'Medicine name required'}), 400
-        
-        medicine_info = prescription_generator._get_medicine_details(medicine)
-        
-        if not medicine_info:
-            return jsonify({'status': 'error', 'message': 'Medicine not found'}), 404
-        
-        return jsonify({
-            'status': 'success',
-            'medicine_info': medicine_info
-        })
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/update_preferences', methods=['POST'])
 def update_preferences():
@@ -998,39 +979,14 @@ def root():
     return jsonify({'message': 'ML backend is running'})
 
 if __name__ == '__main__':
-if __name__ == '__main__':
     prescription_generator = EnhancedPrescriptionGenerator()
     print("Training model on startup...")
     try:
-    prescription_generator.train_enhanced_model(use_ensemble=True)
-    print("Model training complete.")
+        prescription_generator.train_enhanced_model(use_ensemble=True)
+        print("Model training complete.")
     except Exception as e:
-    print(f"Startup training failed: {e}")
-    prescription_generator = EnhancedPrescriptionGenerator()
-    print("Training model on startup...")
-    try:
-    prescription_generator.train_enhanced_model(use_ensemble=True)
-    print("Model training complete.")
-    except Exception as e:
-    print(f"Startup training failed: {e}")
-    prescription_generator = EnhancedPrescriptionGenerator()
-        # Train the enhanced model on startup
-    print("Starting Enhanced Prescription Generator...")
-    print("Training enhanced model (this may take a few minutes)...")
-        try:
-        print("Model training completed successfully!")
-    except Exception as e:
-    print(f"Warning: Model training failed: {e}")
-    print("Server will start without pre-trained model.")
-        # Start the Flask server
+        print(f"Warning: Model training failed: {str(e)}")
+        print("Server will start with untrained model.")
+    
     print("Starting Flask server on port 5000...")
-    app.run(debug=True, port=5000, host='0.0.0.0')
-        @app.route('/train', methods=['POST'])
-    def train_model():
-    try:
-    prescription_generator.train_enhanced_model(use_ensemble=True)
-    return jsonify({'message': 'Model trained successfully'})
-    except Exception as e:
-    return jsonify({'error': str(e)}), 500
-        print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
