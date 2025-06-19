@@ -13,8 +13,7 @@ import warnings
 import logging
 from datetime import datetime
 warnings.filterwarnings('ignore')
-from flask_cors import CORS
-CORS(app)
+
 
 
 # Configure logging
