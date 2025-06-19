@@ -341,7 +341,8 @@ class EnhancedPrescriptionGenerator:
         # Process lab values
         lab_features = []
         for _, row in features_df.iterrows():
-            lab_data = json.loads(row['lab_values']) if pd.notna(row['lab_values']) else {}
+            lab_data = row['lab_values'] if isinstance(row['lab_values'], dict) else json.loads(row['lab_values'])
+
             lab_vector = [
                 lab_data.get('glucose', 90),
                 lab_data.get('hba1c', 5.2),
