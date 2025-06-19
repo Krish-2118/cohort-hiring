@@ -1002,13 +1002,6 @@ def root():
 
 if __name__ == '__main__':
     global prescription_generator
-    prescription_generator = EnhancedPrescriptionGenerator()
-    print("Training model on startup...")
-    try:
-        prescription_generator.train_enhanced_model(use_ensemble=True)
-        print("Model training complete.")
-    except Exception as e:
-        print(f"Startup training failed: {e}")
     global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
     print("Training model on startup...")
@@ -1017,7 +1010,13 @@ if __name__ == '__main__':
         print("Model training complete.")
     except Exception as e:
         print(f"Startup training failed: {e}")
-    global prescription_generator
+    prescription_generator = EnhancedPrescriptionGenerator()
+    print("Training model on startup...")
+    try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
+        print("Model training complete.")
+    except Exception as e:
+        print(f"Startup training failed: {e}")
     prescription_generator = EnhancedPrescriptionGenerator()
 
     # Train the enhanced model on startup
