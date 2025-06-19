@@ -984,17 +984,21 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
 
-
-@app.route('/')
-def root():
-    return jsonify({'message': 'ML backend is running'})
-
 if __name__ == '__main__':
+    prescription_generator = EnhancedPrescriptionGenerator()
+
+    print("Training model on startup...")
+    try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
+        print("Model training complete.")
+    except Exception as e:
+        print(f"Startup training failed: {e}")
+
     prescription_generator = EnhancedPrescriptionGenerator()
 
     # Train the enhanced model on startup
     print("Starting Enhanced Prescription Generator...")
-    
+    print("Training enhanced model (this may take a few minutes)...")
     
     try:
         
@@ -1006,7 +1010,6 @@ if __name__ == '__main__':
     # Start the Flask server
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
-
 @app.route('/')
 def root():
     return jsonify({'message': 'ML backend is running'})
@@ -1019,3 +1022,15 @@ def train_model():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+if __name__ == '__main__':
+    prescription_generator = EnhancedPrescriptionGenerator()
+
+    print("Training model on startup...")
+    try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
+        print("Model training complete.")
+    except Exception as e:
+        print(f"Startup training failed: {e}")
+
+    print("Starting Flask server on port 5000...")
+    app.run(debug=True, port=5000, host='0.0.0.0')
