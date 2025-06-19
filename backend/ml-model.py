@@ -1001,6 +1001,17 @@ def root():
     return jsonify({'message': 'ML backend is running'})
 
 if __name__ == '__main__':
+
+@app.route('/train', methods=['POST'])
+def train_model():
+    try:
+        prescription_generator.train_enhanced_model(use_ensemble=True)
+        return jsonify({'message': 'Model trained successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    global prescription_generator
     global prescription_generator
     global prescription_generator
     prescription_generator = EnhancedPrescriptionGenerator()
@@ -1033,15 +1044,5 @@ if __name__ == '__main__':
     # Start the Flask server
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
-
-@app.route('/train', methods=['POST'])
-def train_model():
-    try:
-        prescription_generator.train_enhanced_model(use_ensemble=True)
-        return jsonify({'message': 'Model trained successfully'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
     print("Starting Flask server on port 5000...")
     app.run(debug=True, port=5000, host='0.0.0.0')
