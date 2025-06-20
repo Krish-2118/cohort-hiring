@@ -592,7 +592,7 @@ class EnhancedPrescriptionGenerator:
     def _check_contraindications(self, medicine: str, patient_conditions: List[str]) -> List[str]:
         """Check contraindications"""
         contraindications = []
-        medicine_details = self._get_medicine_details(medicine)
+        medicine_details = self.get_medicine_details(medicine)
         
         med_contraindications = medicine_details.get('contraindications', [])
         for condition in patient_conditions:
